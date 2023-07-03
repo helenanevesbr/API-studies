@@ -1,10 +1,3 @@
-#Your Flask app knows what to serve based 
-# on your API specification in swagger.yml. 
-#Additionally, Connexion uses swagger.yml 
-# to create API documentation for you.
-#To see your API documentation, navigate to
-# http://localhost:8000/api/ui/#/People
-
 openapi: 3.0.0
 
 info:
@@ -25,8 +18,6 @@ paths:
           description: "Successfully read people list"
     post:
       operationId: "people.create"
-      #You’re telling your server to look for a create() 
-      # function in the people module.
       tags:
         - People
       summary: "Create a person"
@@ -34,7 +25,7 @@ paths:
           description: "Person to create"
           required: True
           content:
-            application/json: # the data exchange format of your API
+            application/json:
               schema:
                 x-body-name: "person"
                 $ref: "#/components/schemas/Person"
@@ -42,9 +33,6 @@ paths:
         "201":
           description: "Successfully created person"
   /people/{lname}:
-  #The {lname} substring is a placeholder for the last name, 
-  # which you have to pass in as a URL parameter. So, for
-  # example, the URL path api/people/Ruprecht
     get:
         operationId: "people.read_one"
         tags:
@@ -55,18 +43,38 @@ paths:
         responses:
           "200":
             description: "Successfully read person"
+    put:
+      tags:
+        - People
+      operationId: "people.update"
+      summary: "Update a person"
+      parameters:
+        - $ref: "#/components/parameters/lname"
+      responses:
+        "200":
+          description: "Successfully updated person"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              x-body-name: "person"
+              $ref: "#/components/schemas/Person"
+    delete:
+      tags:
+        - People
+      operationId: "people.delete"
+      summary: "Delete a person"
+      parameters:
+        - $ref: "#/components/parameters/lname"
+      responses:
+        "204":
+          description: "Successfully deleted person"
 components:
   schemas:
     Person:
       type: "object"
       required:
         - lname
-      #The dash (-) in front of - lname indicates that required
-      # can contain a list of properties. Any property that you 
-      # define as required must also exist in properties, which 
-      # includes the following:
-      # fname: The first name of a person
-      # lname: The last name of a person
       properties:
         fname:
           type: "string"
