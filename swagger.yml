@@ -1,39 +1,82 @@
-#The Connexion module allows a Python program to use the
-#OpenAPI specification with Swagger.
-#The Swagger configuration file is a YAML or JSON file
-#containing your OpenAPI definitions.
+#Your Flask app knows what to serve based 
+# on your API specification in swagger.yml. 
+#Additionally, Connexion uses swagger.yml 
+# to create API documentation for you.
+#To see your API documentation, navigate to
+# http://localhost:8000/api/ui/#/People
 
 openapi: 3.0.0
-#The version string is important because
-#some parts of the OpenAPI structure may 
-#change over time.
 
 info:
   title: "RP Flask REST API"
   description: "An API about people and notes"
   version: "1.0.0"
-
 servers:
   - url: "/api"
-  #you’ll be able to access all of your API paths relative to 
-  #http://localhost:8000/api
-  
 paths:
-  #The paths block begins the configuration of the API URL endpoint paths
   /people:
-  #The relative URL of your API endpoint
-  #Together with the url definition in servers, this creates 
-  #the GET /api/people URL endpoint that you can access at
-  #http://localhost:8000/api/people
-
-    get: #The HTTP method that this URL endpoint will respond to
+    get:
       operationId: "people.read_all"
-      #The Python function that’ll respond to the request.
-      #Connexion will use "people.read_all" to find a Python 
-      #function named read_all() in a people module of your project.
       tags:
         - "People"
       summary: "Read the list of people"
       responses:
-        "200": #The status codes that the endpoint responds with
+        "200":
           description: "Successfully read people list"
+    post:
+      operationId: "people.create"
+      #You’re telling your server to look for a create() 
+      # function in the people module.
+      tags:
+        - People
+      summary: "Create a person"
+      requestBody:
+          description: "Person to create"
+          required: True
+          content:
+            application/json: # the data exchange format of your API
+              schema:
+                x-body-name: "person"
+                $ref: "#/components/schemas/Person"
+      responses:
+        "201":
+          description: "Successfully created person"
+  /people/{lname}:
+  #The {lname} substring is a placeholder for the last name, 
+  # which you have to pass in as a URL parameter. So, for
+  # example, the URL path api/people/Ruprecht
+    get:
+        operationId: "people.read_one"
+        tags:
+          - People
+        summary: "Read one person"
+        parameters:
+          - $ref: "#/components/parameters/lname"
+        responses:
+          "200":
+            description: "Successfully read person"
+components:
+  schemas:
+    Person:
+      type: "object"
+      required:
+        - lname
+      #The dash (-) in front of - lname indicates that required
+      # can contain a list of properties. Any property that you 
+      # define as required must also exist in properties, which 
+      # includes the following:
+      # fname: The first name of a person
+      # lname: The last name of a person
+      properties:
+        fname:
+          type: "string"
+        lname:
+          type: "string"
+  parameters:
+    lname:
+      name: "lname"
+      description: "Last name of the person to get"
+      in: path
+      required: True
+      schema:
+        type: "string"

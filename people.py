@@ -1,8 +1,5 @@
 from datetime import datetime
-
-#Your server will run read_all() when it receives an HTTP request
-# to GET /api/people. The return value of read_all() is a list
-# of dictionaries with information about a person.
+from flask import abort
 
 def get_timestamp():
     return datetime.now().strftime(("%Y-%m-%d %H:%M:%S"))
@@ -27,3 +24,28 @@ PEOPLE = {
 
 def read_all():
     return list(PEOPLE.values())
+
+def create(person):
+    lname = person.get("lname")
+    fname = person.get("fname", "")
+
+    if lname and lname not in PEOPLE:
+        PEOPLE[lname] = {
+            "lname": lname,
+            "fname": fname,
+            "timestamp": get_timestamp(),
+        }
+        return PEOPLE[lname], 201
+    else:
+        abort(
+            406,
+            f"Person with last name {lname} already exists",
+        )
+
+def read_one(lname):
+    if lname in PEOPLE:
+        return PEOPLE[lname]
+    else:
+        abort(
+            404, f"Person with last name {lname} not found"
+        )

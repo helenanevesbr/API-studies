@@ -1,11 +1,8 @@
-from flask import render_template # Remove: import Flask
-from werkzeug import JSONEncoder
+from flask import render_template
 import connexion
 
 app = connexion.App(__name__, specification_dir="./")
-#This tells Connexion which directory to look in for its configuration file
 app.add_api("swagger.yml")
-#To connect the OpenAPI configuration file (swagger.yml) with your Flask app
 
 @app.route("/")
 def home():
