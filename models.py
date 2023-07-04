@@ -13,12 +13,11 @@ class Note(db.Model):
     )
 
 class NoteSchema(ma.SQLAlchemyAutoSchema):
-    # you must place NoteSchema underneath your Note class definition to prevent errors...
     class Meta:
-        model = Note # because you’re referencing Note from within NoteSchema
+        model = Note
         load_instance = True
         sqla_session = db.session
-        include_fk = True # your Note model contains a foreign key
+        include_fk = True
 
 class Person(db.Model):
     __tablename__ = "person"
@@ -44,12 +43,9 @@ class PersonSchema(ma.SQLAlchemyAutoSchema):
         load_instance = True
         sqla_session = db.session
         include_relationships = True
-    notes = fields.Nested(NoteSchema, many=True) # referencing the Note object by its NoteSchema
-    '''
-    After importing fields from marshmallow_sqlalchemy, you have to explicitly create the notes field in PersonSchema.
-    Otherwise Marshmallow doesn’t receive all the information it needs.
-    For example, it won’t know that you’re expecting a list of objects using the many argument.
-    '''
+    notes = fields.Nested(NoteSchema, many=True)
+
 
 person_schema = PersonSchema()
 people_schema = PersonSchema(many=True)
+note_schema = NoteSchema()

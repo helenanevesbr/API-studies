@@ -4,8 +4,10 @@ info:
   title: "RP Flask REST API"
   description: "An API about people and notes"
   version: "1.0.0"
+
 servers:
   - url: "/api"
+
 paths:
   /people:
     get:
@@ -69,6 +71,74 @@ paths:
       responses:
         "204":
           description: "Successfully deleted person"
+  /notes:
+    post:
+      operationId: "notes.create"
+      tags:
+        - Notes
+      summary: "Create a note associated with a person"
+      requestBody:
+          description: "Note to create"
+          required: True
+          content:
+            application/json:
+              schema:
+                x-body-name: "note"
+                type: "object"
+                properties:
+                  person_id:
+                    type: "integer"
+                  content:
+                    type: "string"
+                  # You may also notice that not all the note model fields are present in the component schema.
+                  # That’s okay, because you’ll only use this schema to post new notes.
+                  # For each note, id and timestamp will be set automatically.
+      responses:
+        "201":
+          description: "Successfully created a note"
+  /notes/{note_id}:
+    get:
+      operationId: "notes.read_one"
+      tags:
+        - Notes
+      summary: "Read one note"
+      parameters:
+        - $ref: "#/components/parameters/note_id"
+      responses:
+        "200":
+          description: "Successfully read one note"
+    # The {note_id} substring is a placeholder for the ID of a note that you have to pass in as a URL parameter.
+    # So, for example, the URL http://localhost:8000/api/notes/1 will give you the data for the note with the primary key 1.
+    put:
+      tags:
+        - Notes
+      operationId: "notes.update"
+      summary: "Update a note"
+      parameters:
+        - $ref: "#/components/parameters/note_id"
+      responses:
+        "200":
+          description: "Successfully updated note"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              x-body-name: "note"
+              type: "object"
+              properties:
+                content:
+                  type: "string"
+    delete:
+      tags:
+        - Notes
+      operationId: "notes.delete"
+      summary: "Delete a note"
+      parameters:
+        - $ref: "#/components/parameters/note_id"
+      responses:
+        "204":
+          description: "Successfully deleted note"
+
 components:
   schemas:
     Person:
@@ -88,3 +158,10 @@ components:
       required: True
       schema:
         type: "string"
+    note_id:
+      name: "note_id"
+      description: "ID of the note"
+      in: path
+      required: true
+      schema:
+        type: "integer"
