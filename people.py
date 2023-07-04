@@ -1,29 +1,20 @@
-from datetime import datetime
 from flask import abort, make_response
+from config import db
+from models import Person, people_schema, person_schema
 
-def get_timestamp():
-    return datetime.now().strftime(("%Y-%m-%d %H:%M:%S"))
-
-PEOPLE = {
-    "Fairy": {
-        "fname": "Tooth",
-        "lname": "Fairy",
-        "timestamp": get_timestamp(),
-    },
-    "Ruprecht": {
-        "fname": "Knecht",
-        "lname": "Ruprecht",
-        "timestamp": get_timestamp(),
-    },
-    "Bunny": {
-        "fname": "Easter",
-        "lname": "Bunny",
-        "timestamp": get_timestamp(),
-    }
-}
 
 def read_all():
-    return list(PEOPLE.values())
+    people = Person.query.all()
+    '''
+    Parameter many=True from PersonSchema class tells PersonSchema to expect an iterable to serialize.
+    This is important because the people variable contains a list of database items.
+    '''
+    return people_schema.dump(people)
+    '''
+    .dump() serialize your Python objects
+    Then returns the data of all the people as a response to the REST API call
+    '''
+
 
 def create(person):
     lname = person.get("lname")
@@ -43,8 +34,10 @@ def create(person):
         )
 
 def read_one(lname):
-    if lname in PEOPLE:
-        return PEOPLE[lname]
+    person = Person.query.filter(Person.lname == lname).one_or_none()
+
+    if person is not None:
+        return person_schema.dump(person)
     else:
         abort(
             404, f"Person with last name {lname} not found"
