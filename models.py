@@ -1,11 +1,22 @@
 from datetime import datetime
 from config import db, ma
 
-'''
-REST API works with JSON data. Because SQLAlchemy returns data as Python class instances, Connexion can’t serialize these class instances to JSON-formatted data.
-In this context, serializing means converting Python objects into simpler data structures that can be parsed into JSON data types.
-As an example, your Person class contains a timestamp, which is a Python DateTime class. There’s no DateTime definition in JSON, so the timestamp has to be converted to a string in order to exist in a JSON structure.
-'''
+
+class Note(db.Model):
+    __tablename__ = "note"
+    id = db.Column(db.Integer, primary_key=True)
+    person_id = db.Column(db.Integer, db.ForeignKey("person.id"))
+    '''
+    person_id is known as a foreign key. The foreign key gives each entry in the note table the primary key of the person record that it’s associated with.
+    This and the Person.notes attribute are how SQLAlchemy knows what to do when interacting with Person and Note objects
+    '''
+    content = db.Column(
+        db.String, # contains the actual text of the note
+        nullable=False # new notes must contain content
+    )
+    timestamp = db.Column(
+        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
 
 class Person(db.Model):
     __tablename__ = "person"
@@ -17,25 +28,22 @@ class Person(db.Model):
         db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
     )
 
+    notes = db.relationship(
+    "Note", # The "Note" SQLAlchemy class isn’t defined yet
+    backref="person", # Each instance of Note will contain an attribute called .person. The .person attribute references the parent object that a particular Note instance is associated with.
+    cascade="all, delete, delete-orphan", # how to treat Note instances when changes are made to the parent Person instance.
+    # For example, when a Person object is deleted, SQLAlchemy will create the SQL necessary to delete the Person object from the database.
+    # This parameter tells SQLAlchemy to also delete all the Note instances associated with it.
+    single_parent=True, # tells SQLAlchemy not to allow an orphaned Note instance —that is, a Note without a parent Person object— to exist
+    order_by="desc(Note.timestamp)"
+)
+
 class PersonSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = Person
-        load_instance = True # to deserialize JSON data and load Person model instances from it
+        load_instance = True
         sqla_session = db.session
-'''
-For PersonSchema, the SQLAlchemy model is Person, and the SQLALchemy session is db.session.
-This is how Marshmallow finds attributes in the Person class and learns the types of those attributes so it knows how to serialize and deserialize them.
-'''
+
 
 person_schema = PersonSchema()
 people_schema = PersonSchema(many=True)
-
-'''
-JSON data types are listed below:
-- string
-- number
-- object: A JSON object, which is equivalent to a Python dictionary
-- array: Roughly equivalent to a Python List
-- boolean: Represented in JSON as true or false, but in Python as True or False
-- null: Essentially None in Python
-'''

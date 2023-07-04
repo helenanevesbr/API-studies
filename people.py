@@ -2,10 +2,6 @@ from flask import abort, make_response
 from config import db
 from models import Person, people_schema, person_schema
 
-'''
-To write in the database rather than just reading, we use the Marshmallow PersonSchema to deserialize a JSON structure sent with the HTTP request.
-That way we can create a SQLAlchemy Person object.
-'''
 
 def read_all():
     people = Person.query.all()
@@ -19,9 +15,6 @@ def create(person):
     if existing_person is None:
         new_person = person_schema.load(person, session=db.session)
         db.session.add(new_person)
-        '''
-        you deserialize the person object as new_person and add it to db.session
-        '''
         db.session.commit()
         return person_schema.dump(new_person), 201
     else:
@@ -29,6 +22,7 @@ def create(person):
             406,
             f"Person with last name {lname} already exists",
         )
+
 
 def read_one(lname):
     person = Person.query.filter(Person.lname == lname).one_or_none()
@@ -39,6 +33,7 @@ def read_one(lname):
         abort(
             404, f"Person with last name {lname} not found"
         )
+
 
 def update(lname, person):
     existing_person = Person.query.filter(Person.lname == lname).one_or_none()
