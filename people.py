@@ -50,6 +50,7 @@ def update(lname, person):
             f"Person with last name {lname} not found"
         )
 
+
 def delete(lname):
     existing_person = Person.query.filter(Person.lname == lname).one_or_none()
 
