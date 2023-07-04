@@ -1,11 +1,7 @@
 from datetime import datetime
+from marshmallow_sqlalchemy import fields
 from config import db, ma
 
-'''
-To show the notes for each person in the front end, add attribute include_relationships to PersonSchema and create a NotesSchema.
-include_relationships by itself will make your API response only list the primary keys of each person’s notes.
-That’s fair, because you haven’t yet declared how Marshmallow should deserialize the notes.
-'''
 
 class Note(db.Model):
     __tablename__ = "note"
@@ -15,6 +11,14 @@ class Note(db.Model):
     timestamp = db.Column(
         db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
     )
+
+class NoteSchema(ma.SQLAlchemyAutoSchema):
+    # you must place NoteSchema underneath your Note class definition to prevent errors...
+    class Meta:
+        model = Note # because you’re referencing Note from within NoteSchema
+        load_instance = True
+        sqla_session = db.session
+        include_fk = True # your Note model contains a foreign key
 
 class Person(db.Model):
     __tablename__ = "person"
@@ -40,11 +44,12 @@ class PersonSchema(ma.SQLAlchemyAutoSchema):
         load_instance = True
         sqla_session = db.session
         include_relationships = True
-        '''
-        By default, a Marshmallow schema doesn’t traverse into related database objects. You have to explicitly tell a schema to include relationships.
-        With include_relationships in the Meta class of PersonSchema, you tell Marshmallow to add any related objects to the person schema
-        '''
-
+    notes = fields.Nested(NoteSchema, many=True) # referencing the Note object by its NoteSchema
+    '''
+    After importing fields from marshmallow_sqlalchemy, you have to explicitly create the notes field in PersonSchema.
+    Otherwise Marshmallow doesn’t receive all the information it needs.
+    For example, it won’t know that you’re expecting a list of objects using the many argument.
+    '''
 
 person_schema = PersonSchema()
 people_schema = PersonSchema(many=True)
