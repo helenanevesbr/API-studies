@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     "blog",
+    "graphene_django",
 ]
 
 MIDDLEWARE = [
@@ -70,6 +71,16 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'backend.wsgi.application'
 
+GRAPHENE = {
+  "SCHEMA": "blog.schema.schema",
+}
+# The setting GRAPHENE is telling Django where to find your GraphQL schema.
+# When a client sends a query to your API, the following steps occur:
+# 1 - Django receives the HTTP request containing the query.
+# 2 - Django hands the request off to Graphene-Django.
+# 3 - Graphene-Django loads your schema using the GRAPHENE setting.
+# 4 - Graphene uses your schema to validate and execute the query.
+# 5 - The result of the query is returned to the client as a JSON object.
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
